@@ -1,0 +1,45 @@
+{
+  "$schema": "https://hypar.io/Schemas/Function.json",
+  "description": "The ViewRadius function.",
+  "id": "34693f57-831a-45af-913f-b04523463b8e",
+  "language": "C#",
+  "name": "View Radius",
+  "model_dependencies": [
+    {
+      "name": "Envelope",
+      "optional": false
+    },
+    {
+      "name": "Location",
+      "optional": false
+    }
+  ],
+  "repository_url": "https://github.com/hypar-io/function",
+  "inputs": [
+    {
+      "min": 1.0,
+      "max": 500.0,
+      "step": 1.0,
+      "name": "Height",
+      "description": "The height at which to test the view.",
+      "type": "range"
+    },
+    {
+      "min": 1.0,
+      "max": 100.0,
+      "step": 1.0,
+      "name": "Max Radius",
+      "description": "The maximum radius for raycasting.",
+      "type": "range"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "View Score",
+      "description": "The total area of the isovist at this height.",
+      "type": "number"
+    }
+  ],
+  "preview_image": null,
+  "element_types": null
+}
