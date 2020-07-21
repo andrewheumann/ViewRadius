@@ -17,16 +17,16 @@ namespace ViewRadius
     public class ViewRadiusInputs: S3Args
     {
 		/// <summary>
-		/// The length.
+		/// The height at which to test the view.
 		/// </summary>
-		[JsonProperty("Length")]
-		public double Length {get;}
+		[JsonProperty("Height")]
+		public double Height {get;}
 
 		/// <summary>
-		/// The width.
+		/// The maximum radius for raycasting.
 		/// </summary>
-		[JsonProperty("Width")]
-		public double Width {get;}
+		[JsonProperty("Max Radius")]
+		public double MaxRadius {get;}
 
 
         
@@ -36,8 +36,8 @@ namespace ViewRadius
         /// </summary>
         public ViewRadiusInputs() : base()
         {
-			this.Length = 10;
-			this.Width = 10;
+			this.Height = 100;
+			this.MaxRadius = 1000;
 
         }
 
@@ -47,10 +47,10 @@ namespace ViewRadius
         /// </summary>
         /// <returns></returns>
         [JsonConstructor]
-        public ViewRadiusInputs(double length, double width, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey): base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
+        public ViewRadiusInputs(double height, double maxradius, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey): base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
-			this.Length = length;
-			this.Width = width;
+			this.Height = height;
+			this.MaxRadius = maxradius;
 
 		}
 

@@ -1,18 +1,18 @@
-
+<img src="preview.png" width="512">
             
 # View Radius
 
-The ViewRadius function.
+Calculate the area visible from a building mass at a certain height.
 
 |Input Name|Type|Description|
 |---|---|---|
-|Length|Range|The length.|
-|Width|Range|The width.|
+|Height|Range|The height at which to test the view.|
+|Max Radius|Range|The maximum radius for raycasting.|
 
 
 <br>
 
 |Output Name|Type|Description|
 |---|---|---|
-|Volume|Number|The volume.|
+|View Score|Number|The total area of the isovist at this height.|
 

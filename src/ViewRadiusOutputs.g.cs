@@ -17,10 +17,10 @@ namespace ViewRadius
     public class ViewRadiusOutputs: ResultsBase
     {
 		/// <summary>
-		/// The volume.
+		/// The total area of the isovist at this height.
 		/// </summary>
-		[JsonProperty("Volume")]
-		public double Volume {get;}
+		[JsonProperty("View Score")]
+		public double ViewScore {get;}
 
 
         
@@ -39,9 +39,9 @@ namespace ViewRadius
         /// </summary>
         /// <returns></returns>
         [JsonConstructor]
-        public ViewRadiusOutputs(double volume): base()
+        public ViewRadiusOutputs(double viewscore): base()
         {
-			this.Volume = volume;
+			this.ViewScore = viewscore;
 
 		}
 
