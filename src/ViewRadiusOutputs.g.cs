@@ -23,7 +23,7 @@ namespace ViewRadius
 		public double ViewScore {get;}
 
 
-        
+
         /// <summary>
         /// Construct a ViewRadiusOutputs with default inputs.
         /// This should be used for testing only.
@@ -39,9 +39,9 @@ namespace ViewRadius
         /// </summary>
         /// <returns></returns>
         [JsonConstructor]
-        public ViewRadiusOutputs(double viewscore): base()
+        public ViewRadiusOutputs(double viewScore): base()
         {
-			this.ViewScore = viewscore;
+			this.ViewScore = viewScore;
 
 		}
 

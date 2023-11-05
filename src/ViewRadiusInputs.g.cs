@@ -5,59 +5,57 @@
 using Elements;
 using Elements.GeoJSON;
 using Elements.Geometry;
+using Elements.Geometry.Solids;
+using Elements.Validators;
+using Elements.Serialization.JSON;
 using Hypar.Functions;
 using Hypar.Functions.Execution;
 using Hypar.Functions.Execution.AWS;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Line = Elements.Geometry.Line;
+using Polygon = Elements.Geometry.Polygon;
 
 namespace ViewRadius
 {
-    public class ViewRadiusInputs: S3Args
+    #pragma warning disable // Disable all warnings
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.1.21.0 (Newtonsoft.Json v12.0.0.0)")]
+    
+    public  class ViewRadiusInputs : S3Args
+    
     {
-		/// <summary>
-		/// The height at which to test the view.
-		/// </summary>
-		[JsonProperty("Height")]
-		public double Height {get;}
-
-		/// <summary>
-		/// The maximum radius for raycasting.
-		/// </summary>
-		[JsonProperty("Max Radius")]
-		public double MaxRadius {get;}
-
-
+        [Newtonsoft.Json.JsonConstructor]
         
-        /// <summary>
-        /// Construct a ViewRadiusInputs with default inputs.
-        /// This should be used for testing only.
-        /// </summary>
-        public ViewRadiusInputs() : base()
+        public ViewRadiusInputs(double @height, double @maxRadius, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey):
+        base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
         {
-			this.Height = 100;
-			this.MaxRadius = 1000;
-
+            var validator = Validator.Instance.GetFirstValidatorForType<ViewRadiusInputs>();
+            if(validator != null)
+            {
+                validator.PreConstruct(new object[]{ @height, @maxRadius});
+            }
+        
+            this.Height = @height;
+            this.MaxRadius = @maxRadius;
+        
+            if(validator != null)
+            {
+                validator.PostConstruct(this);
+            }
         }
-
-
-        /// <summary>
-        /// Construct a ViewRadiusInputs specifying all inputs.
-        /// </summary>
-        /// <returns></returns>
-        [JsonConstructor]
-        public ViewRadiusInputs(double height, double maxradius, string bucketName, string uploadsBucket, Dictionary<string, string> modelInputKeys, string gltfKey, string elementsKey, string ifcKey): base(bucketName, uploadsBucket, modelInputKeys, gltfKey, elementsKey, ifcKey)
-        {
-			this.Height = height;
-			this.MaxRadius = maxradius;
-
-		}
-
-		public override string ToString()
-		{
-			var json = JsonConvert.SerializeObject(this);
-			return json;
-		}
-	}
+    
+        /// <summary>The height at which to test the view.</summary>
+        [Newtonsoft.Json.JsonProperty("Height", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1.0D, 100D)]
+        public double Height { get; set; } = 20D;
+    
+        /// <summary>The maximum radius for raycasting.</summary>
+        [Newtonsoft.Json.JsonProperty("Max Radius", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(1.0D, 1000.0D)]
+        public double MaxRadius { get; set; } = 250D;
+    
+    
+    }
 }

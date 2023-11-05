@@ -31,11 +31,13 @@ namespace ViewRadius
             }
             var allEnvelopes = envelopeModel.AllElementsOfType<Envelope>();
             var allContextBuildings = contextBuildingsModel.AllElementsOfType<Mass>();
+            var allContextMeshes = contextBuildingsModel.AllElementsOfType<MeshElement>();
+            var isMesh = allContextMeshes.Count() > 0;
             if (!allEnvelopes.Any())
             {
                 throw new Exception("No envelopes in model.");
             }
-            if (!allContextBuildings.Any())
+            if (!allContextBuildings.Any() && !allContextMeshes.Any())
             {
                 throw new Exception("No context buildings in model.");
             }
@@ -45,7 +47,16 @@ namespace ViewRadius
             var model = new Model();
             int rayCount = 170;
 
-            var allFaces = allContextBuildings.SelectMany(b => b.Representation.SolidOperations.Select(s => s.Solid.Faces));
+            IEnumerable<Dictionary<long, Face>> allFaces = new List<Dictionary<long, Face>>();
+            IEnumerable<Triangle> triangles = new List<Triangle>();
+            if (!isMesh)
+            {
+                allFaces = allContextBuildings.SelectMany(b => b.Representation.SolidOperations.Select(s => s.Solid.Faces));
+            }
+            else
+            {
+                triangles = allContextMeshes.SelectMany(m => m.Mesh.Triangles);
+            }
             var maxTotalScore = 0.0;
             var totalScore = 0.0;
             foreach (var envelope in envelopesAtHeight)
@@ -63,48 +74,95 @@ namespace ViewRadius
 
                 var maxCircle = new Circle(heightTransform.Origin, totalRadius);
 
-
-                var filteredFaces = filterFaces(allFaces.SelectMany(f => f.Values).ToList(), maxCircle);
-
-                var rays = rayDirections.Select(i => new Ray(maxCircle.Center, i));
-                List<Vector3> finalIsovistPoints = new List<Vector3>();
-
-                foreach (var ray in rays)
+                List<Vector3> finalIsovistPoints;
+                if (isMesh)
                 {
-                    List<Vector3> allResults = new List<Vector3>();
-
-                    foreach (var face in filteredFaces)
-                    {
-                        if (Intersects(ray, face, out Vector3 result))
-                        {
-                            allResults.Add(result);
-                        }
-                    }
-                    if (allResults.Count > 0)
-                    {
-                        var resultsOrdered = allResults.OrderBy(r => r.DistanceTo(ray.Origin));
-                        finalIsovistPoints.Add(resultsOrdered.First());
-                    }
-                    else
-                    {
-                        finalIsovistPoints.Add(ray.Origin + ray.Direction.Unitized() * totalRadius);
-                    }
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    finalIsovistPoints = MeshBasedIsovist(triangles, rayDirections, totalRadius, maxCircle);
+                    stopWatch.Stop();
+                    Console.WriteLine($"{stopWatch.Elapsed.TotalSeconds}s elapsed");
                 }
-
+                else
+                {
+                    finalIsovistPoints = MassBasedIsovist(allFaces, rayDirections, totalRadius, maxCircle);
+                }
                 var isovist = new Polygon(finalIsovistPoints);
                 totalScore += isovist.Area();
 
                 Mesh mesh = CreateMeshFromRays(finalIsovistPoints, maxCircle, rayCount);
                 var isovistElement = new Isovist(mesh);
-
+                isovistElement.Score = (isovist.Area() / (Math.PI * totalRadius * totalRadius) * 100);
                 model.AddElement(isovistElement);
-            
+
             }
             var outputs = new ViewRadiusOutputs((totalScore / maxTotalScore) * 100);
-            outputs.model = model;
+            outputs.Model = model;
             return outputs;
+        }
 
+        private static List<Vector3> MeshBasedIsovist(IEnumerable<Triangle> triangles, IList<Vector3> rayDirections, double totalRadius, Circle maxCircle)
+        {
+            var finalIsovistPoints = new List<Vector3>();
+            var rays = rayDirections.Select(i => new Ray(maxCircle.Center, i));
+            var trianglesWithinDistance = triangles.Where(t => maxCircle.Center.DistanceTo(t.Vertices[0].Position) < totalRadius * 1.3);
+            foreach (var ray in rays)
+            {
+                List<Vector3> allResults = new List<Vector3>();
+                foreach (var triangle in trianglesWithinDistance)
+                {
 
+                    if (ray.Intersects(triangle, out var result))
+                    {
+                        if (result.DistanceTo(ray.Origin) < totalRadius)
+                        {
+                            allResults.Add(result);
+                        }
+                    }
+                }
+
+                if (allResults.Count > 0)
+                {
+                    var resultsOrdered = allResults.OrderBy(r => r.DistanceTo(ray.Origin));
+                    finalIsovistPoints.Add(resultsOrdered.First());
+                }
+                else
+                {
+                    finalIsovistPoints.Add(ray.Origin + ray.Direction.Unitized() * totalRadius);
+                }
+            }
+
+            return finalIsovistPoints;
+        }
+
+        private static List<Vector3> MassBasedIsovist(IEnumerable<Dictionary<long, Face>> allFaces, IList<Vector3> rayDirections, double totalRadius, Circle maxCircle)
+        {
+            var filteredFaces = filterFaces(allFaces.SelectMany(f => f.Values).ToList(), maxCircle);
+
+            var rays = rayDirections.Select(i => new Ray(maxCircle.Center, i));
+            var finalIsovistPoints = new List<Vector3>();
+            foreach (var ray in rays)
+            {
+                List<Vector3> allResults = new List<Vector3>();
+
+                foreach (var face in filteredFaces)
+                {
+                    if (Intersects(ray, face, out Vector3 result))
+                    {
+                        allResults.Add(result);
+                    }
+                }
+                if (allResults.Count > 0)
+                {
+                    var resultsOrdered = allResults.OrderBy(r => r.DistanceTo(ray.Origin));
+                    finalIsovistPoints.Add(resultsOrdered.First());
+                }
+                else
+                {
+                    finalIsovistPoints.Add(ray.Origin + ray.Direction.Unitized() * totalRadius);
+                }
+            }
+            return finalIsovistPoints;
         }
 
         private static bool IsInRoughDirection(Face face, Ray ray, Circle maxCircle)
